@@ -11,7 +11,7 @@ function App() {
     height: 50
   })
   const [completedCrop, setCompletedCrop] = useState(null);
-  const [image, setImage] = useState();
+  const [image, setImage] = useState();  
   const canvasRef = useRef(null);
 
 
@@ -43,13 +43,16 @@ function App() {
   function handleChange(e) {
 
     setImage(URL.createObjectURL(e.target.files[0]))
+    
 
   }
+  
   const ShowCrop = function () {
+   
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
 
-    const img = new Image(500, 500);
+    const img = new Image(image.height, image.width);
     img.src = image;
     const pixelRatio = window.devicePixelRatio;
     const scaleX = img.naturalWidth / img.width;
@@ -76,7 +79,7 @@ function App() {
     setCompletedCrop(dataURL);
   }
 
-
+ 
 
   return (
 
@@ -89,18 +92,19 @@ function App() {
         <div style={{ marginRight: 20 }}>
 
           <ReactCrop onComplete={handleComplete} crop={crop} onChange={c => setCrop(c)} >
-            {image && <img src={image} style={{ height: "500px", width: '500px' }} />}
+            {image && <img src={image} style={{ height: image.height, width: image.width }} />}
           </ReactCrop>
         </div>
 
         <div style={{ marginLeft: '5' }}>
-          <canvas ref={canvasRef} height={'100%'} width={'100%'} ></canvas>
+          <canvas ref={canvasRef} height={500} width={500} ></canvas>
 
         </div>
 
       </div>
       {image && <button onClick={downloadImage}>Download Image</button>}
       {image && <button style={{ marginLeft: 5 }} onClick={ShowCrop}>Crop</button>}
+
     </div>
 
   );
