@@ -1,6 +1,6 @@
-import ReactCrop from 'react-image-crop'
-import { useEffect, useRef, useState } from 'react';
-import 'react-image-crop/dist/ReactCrop.css'
+import ReactCrop from 'react-image-crop';
+import { useRef, useState } from 'react';
+import 'react-image-crop/dist/ReactCrop.css';
 
 function App() {
   const [crop, setCrop] = useState({
@@ -8,23 +8,22 @@ function App() {
     x: 25,
     y: 25,
     width: 50,
-    height: 50
-  })
+    height: 50,
+  });
+
   const [completedCrop, setCompletedCrop] = useState(null);
-  const [image, setImage] = useState();  
+  const [image, setImage] = useState(null);
   const canvasRef = useRef(null);
+  const imgRef = useRef(null);
+  const [showingimage,setShowingImage] = useState(false);
 
+  
 
+  const handleComplete = (crop) => {
+    setCompletedCrop(crop);
+  };
 
-  useEffect(() => {
-    console.log(crop)
-  }, [crop]);
-
-  const handleComplete = function () {
-
-  }
-
-  function downloadImage() {
+  const downloadImage = () => {
     if (!completedCrop || !canvasRef.current) {
       return;
     }
@@ -38,32 +37,37 @@ function App() {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-  }
+  };
 
-  function handleChange(e) {
-
-    setImage(URL.createObjectURL(e.target.files[0]))
-    
-
-  }
-  
-  const ShowCrop = function () {
-   
+  const handleChange = (e) => {
+    setImage(URL.createObjectURL(e.target.files[0]));
+    setShowingImage(true);
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+  };
 
-    const img = new Image(image.height, image.width);
-    img.src = image;
-    const pixelRatio = window.devicePixelRatio;
-    const scaleX = img.naturalWidth / img.width;
-    const scaleY = img.naturalHeight / img.height;
-    canvas.width = crop.width * pixelRatio * scaleX;
-    canvas.height = crop.height * pixelRatio * scaleY;
+  const ShowCrop = function () {
+    if (!completedCrop || !canvasRef.current || !imgRef.current) {
+      return;
+    }
 
-    ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
-    ctx.imageSmoothingQuality = 'high';
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    const img = imgRef.current;
 
     img.onload = () => {
+      const scaleX = img.naturalWidth / img.width;
+      const scaleY = img.naturalHeight / img.height;
+      const pixelRatio = window.devicePixelRatio;
+
+      canvas.width = crop.width * scaleX * pixelRatio;
+      canvas.height = crop.height * scaleY * pixelRatio;
+
+      ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+      ctx.imageSmoothingQuality = 'high';
+
       ctx.drawImage(
         img,
         crop.x * scaleX,
@@ -72,41 +76,40 @@ function App() {
         crop.height * scaleY,
         0,
         0,
-        crop.width,
-        crop.height);
-    };
-    const dataURL = canvas.toDataURL('image/png');
-    setCompletedCrop(dataURL);
-  }
+        crop.width * scaleX,
+        crop.height * scaleY
+      );
 
- 
+      const dataURL = canvas.toDataURL('image/png');
+      setCompletedCrop(dataURL);
+      setShowingImage(false);
+    };
+
+    img.src = image;
+  };
 
   return (
-
-    <div className="App" style={{ marginLeft: 5 }}>
+    <div className="App" style={{marginLeft: 5}}>
       <h1>Image Cropper</h1>
-      Choose Image to Crop :
-      <input type='file' onChange={handleChange} style={{ marginBottom: 10 }} ></input>
+      <h2> Choose Image to Crop :</h2>
+      <input type="file" onChange={handleChange} style={{ marginBottom: 10 }} />
       <div style={{ display: 'flex', flexDirection: 'row' }}>
-
         <div style={{ marginRight: 20 }}>
-
-          <ReactCrop onComplete={handleComplete} crop={crop} onChange={c => setCrop(c)} >
-            {image && <img src={image} style={{ height: image.height, width: image.width }} />}
-          </ReactCrop>
+          {showingimage && <ReactCrop
+            crop={crop}
+            onChange={(newCrop) => setCrop(newCrop)}
+            onComplete={handleComplete}
+          >
+           <img ref={imgRef} src={image} alt="Source" />
+          </ReactCrop>}
         </div>
-
-        <div style={{ marginLeft: '5' }}>
-          <canvas ref={canvasRef} height={500} width={500} ></canvas>
-
+        <div style={{ marginLeft: 5 }}>
+          <canvas ref={canvasRef}  />
         </div>
-
       </div>
       {image && <button onClick={downloadImage}>Download Image</button>}
-      {image && <button style={{ marginLeft: 5 }} onClick={ShowCrop}>Crop</button>}
-
+      {(image || completedCrop )&&<button style={{ marginLeft: 5 }} onClick={ShowCrop}>Crop</button>}
     </div>
-
   );
 }
 
